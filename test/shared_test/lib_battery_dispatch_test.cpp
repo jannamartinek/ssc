@@ -81,6 +81,58 @@ TEST_F(BatteryDispatchTest_lib_battery_dispatch, DispatchFOMInput_lib_battery_di
 
 	dispatchAutoFOM->set_custom_dispatch(P_batt);
 	dispatchAutoFOM->dispatch(0, 0, 0);
+	EXPECT_NEAR(batteryPower->powerBatteryDC, -216.8, 0.1);
+	EXPECT_NEAR(batteryPower->powerBatteryAC, -225.8, 0.1);
+	EXPECT_NEAR(batteryPower->powerGridToBattery, 0, 0.1); // Don't charge from grid when there's PV
+}
+
+TEST_F(BatteryDispatchTest_lib_battery_dispatch, DispatchFOMInput_lib_battery_dispatch_gridpower)
+{
+	//std::vector<double> P_batt = { 15.7606, -0.475176, 5.49633, 29.0455, 56.4008, 37.9545, 70.2519, -7.93312, -5.4158, -65.4002, -68.1929, -68.193, -34.5111 };
+	std::vector<double> P_batt;
+	// Fill the array to satisfy length checks
+	for (int i = 0; i < (8760 * 60); i++) {
+		P_batt.push_back(-336.062);
+	}
+
+	dispatchAutoFOM->set_custom_dispatch(P_batt);
+	batteryPower = dispatchAutoFOM->getBatteryPower();
+	batteryPower->connectionMode = ChargeController::DC_CONNECTED;
+
+	// inverter
+	int numberOfInverters = 100;
+	sandia_inverter_t* sandia = new sandia_inverter_t();
+	partload_inverter_t* partload = new partload_inverter_t();
+	ond_inverter* ond = new ond_inverter();
+	sandia->C0 = -2.445577e-8;
+	sandia->C1 = 1.2e-5;
+	sandia->C2 = 0.001461;
+	sandia->C3 = -0.00151;
+	sandia->Paco = 77000;
+	sandia->Pdco = 791706.4375;
+	sandia->Vdco = 614;
+	sandia->Pso = 2859.5;
+	sandia->Pntare = 0.99;
+	SharedInverter* m_sharedInverter = new SharedInverter(SharedInverter::SANDIA_INVERTER, numberOfInverters, sandia, partload, ond);
+	batteryPower->setSharedInverter(m_sharedInverter);
+
+	// Set power from grid to greater than what is needed for charging
+	batteryPower->powerPV = 0;
+	batteryPower->powerFuelCell = 0;
+	batteryPower->powerGridToBattery = 1000; // Max power is 500 kW, so this should decrease
+	batteryPower->canGridCharge = true;
+
+	double powerToFill = dispatchAutoFOM->battery_power_to_fill();
+	size_t hours = 0;
+	
+	// Charge from grid
+
+	dispatchAutoFOM->dispatch(0, 0, 0);
+
+	// Battery should not charge at than max power (500 kW)
+	EXPECT_GT(batteryPower->powerBatteryDC, -500);
+	EXPECT_GT(batteryPower->powerBatteryAC, -500.0);
+	EXPECT_LT(batteryPower->powerGridToBattery, 500.0);
 }
 
 TEST_F(BatteryDispatchTest_lib_battery_dispatch, DispatchFOM_DCAuto)
