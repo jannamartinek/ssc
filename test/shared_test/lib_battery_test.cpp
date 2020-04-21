@@ -37,10 +37,18 @@ TEST_F(BatteryTest, LithiumIonCapacityTest_lib_battery)
 	// check that updating thermal behavior changes capacity as expected
 	capacityModel->updateCapacityForThermal(95);
 	capacityModel->check_SOC();
+	capacityModel->update_SOC();
 	EXPECT_EQ(capacityModel->q0(), 95);
 	EXPECT_EQ(capacityModel->qmax(), 100);
+	EXPECT_EQ(capacityModel->qmax_thermal(), 95);
+	EXPECT_EQ(capacityModel->SOC(), 100);
 	capacityModel->updateCapacityForThermal(100);
 	capacityModel->check_SOC();
+	capacityModel->update_SOC();
+	EXPECT_EQ(capacityModel->q0(), 95);
+	EXPECT_EQ(capacityModel->qmax(), 100);
+	EXPECT_EQ(capacityModel->qmax_thermal(), 100);
+	EXPECT_EQ(capacityModel->SOC(), 95);
 
 	// check that updating lifetime degradation changes capacity
 	capacityModel->updateCapacityForLifetime(95);
@@ -112,8 +120,37 @@ TEST_F(BatteryTest, AugmentCapacity)
 	battery->initialize(capacityModel, voltageModel, lifetimeModel, thermalModel, lossModel);
 	battery->lifetime_model()->set_replacement_option(battery_t::REPLACE_BY_SCHEDULE);
 
+}
 
+TEST_F(BatteryTest, ThermalCapacityImpact)
+{
+	if (thermalModel) {
+		delete thermalModel;
+	}
 
+	double temp;
+	for (size_t i = 0; i < 8760; i++) {
+		temp = 20 + 273.15;
+		if (i < 20) {
+			temp -= i; // Slowly cool the room temp for the first 20 hours
+		}
 
+		T_room.push_back(temp);
+	}
+	thermalModel = new thermal_t(1.0, mass, length, width, height, Cp, h, T_room, capacityVsTemperature);
+	battery_t *battery = new battery_t(dtHour, chemistry);
+	battery->initialize(capacityModel, voltageModel, lifetimeModel, thermalModel, lossModel);
 
+	double I = 0;
+	for (size_t i = 0; i < 20; i++) {
+		if (i > 10) {
+			I = 100;
+		}
+		battery->run(i, I);
+		double battery_temp = battery->thermal_model()->T_battery();
+		double battery_cap = battery->capacity_model()->qmax_thermal();
+		EXPECT_EQ(battery_temp, 293.15) << " Hour " + i;
+		EXPECT_EQ(battery_cap, 1000) << " Hour " + i;
+
+	}
 }
