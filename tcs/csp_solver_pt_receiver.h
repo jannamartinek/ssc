@@ -133,7 +133,9 @@ public:
 		double m_Q_thermal_csky_ss;		//[MWt]  Steady-state thermal power delivered to TES/PC if DNI is equal to clear-sky DNI 
 		double m_Q_thermal_ss;			//[MWt] Steady-state thermal power delivered to TES/PC
 
-        std::vector<double> m_T_panel_avg; //[C] Average fluid temperature per receiver panel 
+        std::vector<double> m_T_panel_avg; //[C] Average fluid temperature per receiver panel
+        std::vector<double> m_m_dot_salt_path; //[kg/s] Mass flow rate of salt per flow circuit
+        std::vector<double> m_T_salt_hot_rec_path; //[C] Receiver outlet temperature (before piping loss) per path
 
         S_outputs()
         {

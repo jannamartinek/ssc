@@ -84,7 +84,14 @@ public:
         E_T_HTF_10,
         E_T_HTF_11,
         E_T_HTF_12,
-        E_T_HTF_13
+        E_T_HTF_13,
+
+        E_M_DOT_HTF_1,  // [kg/s] Receiver flow circuit 1 mass flow rate 
+        E_M_DOT_HTF_2,   // [kg/s] Receiver flow circuit 2 mass flow rate
+
+        E_T_HTF_OUT_REC_1, //[C] Receiver outlet temperatur from circuit 1 (before piping loss)
+        E_T_HTF_OUT_REC_2  //[C] Receiver outlet temperatur from circuit 1 (before piping loss)
+
 	};
 	
 	C_csp_reported_outputs mc_reported_outputs;

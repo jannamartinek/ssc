@@ -373,6 +373,15 @@ void C_mspt_receiver::init()
     int n = std::fmax(14, m_n_panels);
     outputs.m_T_panel_avg.resize(n);
 
+    n = std::fmax(2, m_n_lines);
+    outputs.m_m_dot_salt_path.resize(n);
+    outputs.m_T_salt_hot_rec_path.resize(n);
+    for (int j = 0; j < n; j++)
+    {
+        outputs.m_m_dot_salt_path.at(j) = 0.0;
+        outputs.m_T_salt_hot_rec_path.at(j) = 0.0;
+    }
+
 	initialize_transient_parameters();
 	
 	return;
@@ -681,6 +690,8 @@ void C_mspt_receiver::call(const C_csp_weatherreader::S_outputs &weather,
 	double eta_therm, m_dot_salt_tot, T_salt_hot, m_dot_salt_tot_ss, T_salt_hot_rec;
 	eta_therm = m_dot_salt_tot = T_salt_hot = m_dot_salt_tot_ss = T_salt_hot_rec = std::numeric_limits<double>::quiet_NaN();
 	double clearsky = std::numeric_limits<double>::quiet_NaN();
+    std::vector<double> m_dot_salt_path(m_n_lines, 0.0);
+    std::vector<double> T_salt_hot_rec_path(m_n_lines, 0.0);
 
 	bool rec_is_off = false;
 	bool rec_is_defocusing = false;
@@ -882,8 +893,10 @@ void C_mspt_receiver::call(const C_csp_weatherreader::S_outputs &weather,
 	field_eff_adj = field_eff * soln.od_control;
 
 	m_dot_salt_tot = soln.m_dot_salt_tot;
+    m_dot_salt_path = soln.m_dot_salt_path;
 	T_salt_hot = soln.T_salt_hot;
 	T_salt_hot_rec = soln.T_salt_hot_rec;
+    T_salt_hot_rec_path = soln.T_salt_hot_rec_path;
 	eta_therm = soln.eta_therm;
 
 	u_coolant = soln.u_salt;
@@ -1479,6 +1492,14 @@ void C_mspt_receiver::call(const C_csp_weatherreader::S_outputs &weather,
 		m_od_control = 1.0;		//[-]
 
         m_T_panel_ave.resize_fill(m_n_panels, m_T_htf_cold_des);
+        m_dot_salt_path.resize(m_n_lines);
+        T_salt_hot_rec_path.resize(m_n_lines);
+        for (int j = 0; j < m_n_lines; j++)
+        {
+            m_dot_salt_path.at(j) = 0.0;
+            T_salt_hot_rec_path.at(j) = m_T_htf_cold_des;
+        }
+
 
 		if (m_is_transient || m_is_startup_transient)
 		{
@@ -1533,6 +1554,12 @@ void C_mspt_receiver::call(const C_csp_weatherreader::S_outputs &weather,
 
     for (int j = 0; j < m_n_panels; j++)
         outputs.m_T_panel_avg.at(j) = m_T_panel_ave.at(j) - 273.15;
+
+    for (int j = 0; j < m_n_lines; j++)
+    {
+        outputs.m_m_dot_salt_path.at(j) = m_dot_salt_path.at(j);
+        outputs.m_T_salt_hot_rec_path.at(j) = T_salt_hot_rec_path.at(j) - 273.15;
+    }
 
 	// Transient model outputs
 	if ((m_is_transient && input_operation_mode == C_csp_collector_receiver::ON) || (m_is_startup_transient && input_operation_mode == C_csp_collector_receiver::STARTUP))		// Transient model is solved
@@ -1637,6 +1664,12 @@ void C_mspt_receiver::off(const C_csp_weatherreader::S_outputs &weather,
 
     for (int j = 0; j < m_n_panels; j++)
         outputs.m_T_panel_avg.at(j) = 0.0;
+
+    for (int j = 0; j < m_n_lines; j++)
+    {
+        outputs.m_m_dot_salt_path.at(j) = 0.0;
+        outputs.m_T_salt_hot_rec_path.at(j) = 0.0;
+    }
 
 	m_startup_mode = -1;
 	

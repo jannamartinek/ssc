@@ -582,7 +582,10 @@ static var_info _cm_vtab_tcsmolten_salt[] = {
     { SSC_OUTPUT,    SSC_ARRAY,  "T_htf_panel_12",				       "Average HTF T in panel 12",												                                                                  "C",            "",                                  "CR",                                       "*",                                                                "",              "" },
     { SSC_OUTPUT,    SSC_ARRAY,  "T_htf_panel_13",				       "Average HTF T in panel 13",												                                                                  "C",            "",                                  "CR",                                       "*",                                                                "",              "" },
 
-
+    { SSC_OUTPUT,    SSC_ARRAY,  "m_dot_rec_path_1",                   "Receiver mass flow rate in circuit 1",                                                                                                    "kg/s",         "",                                  "",                                         "*",                                                                "",              "" },
+    { SSC_OUTPUT,    SSC_ARRAY,  "m_dot_rec_path_2",                   "Receiver mass flow rate in circuit 2",                                                                                                    "kg/s",         "",                                  "",                                         "*",                                                                "",              "" },
+    { SSC_OUTPUT,    SSC_ARRAY,  "T_panel_out_path_1",                   "Receiver outlet T from circuit 1",                                                                                                        "C",            "",                                  "",                                         "*",                                                                "",              "" },
+    { SSC_OUTPUT,    SSC_ARRAY,  "T_panel_out_path_2",                   "Receiver outlet T from circuit 2",                                                                                                        "C",            "",                                  "",                                         "*",                                                                "",              "" },
 
         // Power cycle outputs
     { SSC_OUTPUT,    SSC_ARRAY,  "eta",                                "PC efficiency, gross",                                                                                                                    "",             "",                                  "",                                         "*",                                                                "",              ""},
@@ -2078,6 +2081,12 @@ public:
         collector_receiver.mc_reported_outputs.assign(C_csp_mspt_collector_receiver::E_T_HTF_11, allocate("T_htf_panel_11", n_steps_fixed), n_steps_fixed);
         collector_receiver.mc_reported_outputs.assign(C_csp_mspt_collector_receiver::E_T_HTF_12, allocate("T_htf_panel_12", n_steps_fixed), n_steps_fixed);
         collector_receiver.mc_reported_outputs.assign(C_csp_mspt_collector_receiver::E_T_HTF_13, allocate("T_htf_panel_13", n_steps_fixed), n_steps_fixed);
+
+        collector_receiver.mc_reported_outputs.assign(C_csp_mspt_collector_receiver::E_M_DOT_HTF_1, allocate("m_dot_rec_path_1", n_steps_fixed), n_steps_fixed);
+        collector_receiver.mc_reported_outputs.assign(C_csp_mspt_collector_receiver::E_M_DOT_HTF_2, allocate("m_dot_rec_path_2", n_steps_fixed), n_steps_fixed);
+
+        collector_receiver.mc_reported_outputs.assign(C_csp_mspt_collector_receiver::E_T_HTF_OUT_REC_1, allocate("T_panel_out_path_1", n_steps_fixed), n_steps_fixed);
+        collector_receiver.mc_reported_outputs.assign(C_csp_mspt_collector_receiver::E_T_HTF_OUT_REC_2, allocate("T_panel_out_path_2", n_steps_fixed), n_steps_fixed);
 
         // Thermal energy storage 
         C_csp_two_tank_tes storage;

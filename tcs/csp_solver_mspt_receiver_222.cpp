@@ -302,6 +302,15 @@ void C_mspt_receiver_222::init()
     int n = std::fmax(14, m_n_panels);
     outputs.m_T_panel_avg.resize(n);
 
+    n = std::fmax(2, m_n_lines);
+    outputs.m_m_dot_salt_path.resize(n);
+    outputs.m_T_salt_hot_rec_path.resize(n);
+    for (int j = 0; j < n; j++)
+    {
+        outputs.m_m_dot_salt_path.at(j) = 0.0;
+        outputs.m_T_salt_hot_rec_path.at(j) = 0.0;
+    }
+
 	return;
 }
 
@@ -374,6 +383,8 @@ void C_mspt_receiver_222::call(const C_csp_weatherreader::S_outputs &weather,
 	double eta_therm, m_dot_salt_tot, T_salt_hot, m_dot_salt_tot_ss, T_salt_hot_rec;
 	eta_therm = m_dot_salt_tot = T_salt_hot = m_dot_salt_tot_ss = T_salt_hot_rec = std::numeric_limits<double>::quiet_NaN();
 	double clearsky = std::numeric_limits<double>::quiet_NaN();
+    std::vector<double> m_dot_salt_path(m_n_lines, 0.0);
+    std::vector<double> T_salt_hot_rec_path(m_n_lines, 0.0);
 	
 	bool rec_is_off = false;
 	bool rec_is_defocusing = false;
@@ -571,8 +582,10 @@ void C_mspt_receiver_222::call(const C_csp_weatherreader::S_outputs &weather,
 	field_eff_adj = field_eff * soln.od_control;
 
 	m_dot_salt_tot = soln.m_dot_salt_tot;
+    m_dot_salt_path = soln.m_dot_salt_path;
 	T_salt_hot = soln.T_salt_hot;	
 	T_salt_hot_rec = soln.T_salt_hot_rec;
+    T_salt_hot_rec_path = soln.T_salt_hot_rec_path;
 	eta_therm = soln.eta_therm;
 
 	u_coolant = soln.u_salt;
@@ -779,7 +792,15 @@ void C_mspt_receiver_222::call(const C_csp_weatherreader::S_outputs &weather,
 		m_od_control = 1.0;		//[-]
 
         m_T_panel_ave.resize_fill(m_n_panels, m_T_htf_cold_des);
+        m_dot_salt_path.resize(m_n_lines);
+        T_salt_hot_rec_path.resize(m_n_lines);
+        for (int j = 0; j < m_n_lines; j++)
+        {
+            m_dot_salt_path.at(j) = 0.0;
+            T_salt_hot_rec_path.at(j) = m_T_htf_cold_des;
+        }
 
+        
 	}
 
 	outputs.m_m_dot_salt_tot = m_dot_salt_tot*3600.0;		//[kg/hr] convert from kg/s
@@ -814,6 +835,12 @@ void C_mspt_receiver_222::call(const C_csp_weatherreader::S_outputs &weather,
 
     for (int j = 0; j < m_n_panels; j++)
         outputs.m_T_panel_avg.at(j) = m_T_panel_ave.at(j) - 273.15;
+
+    for (int j = 0; j < m_n_lines; j++)
+    {
+        outputs.m_m_dot_salt_path.at(j) = m_dot_salt_path.at(j);
+        outputs.m_T_salt_hot_rec_path.at(j) = T_salt_hot_rec_path.at(j) - 273.15;
+    }
 
     // Force receiver outlet temperature to user-defined value (and adjust corresponding thermal power). Only for comparing cycle/TES models with plant data
     if (m_is_user_Tout && m_is_user_mflow && !rec_is_off)
@@ -876,6 +903,12 @@ void C_mspt_receiver_222::off(const C_csp_weatherreader::S_outputs &weather,
 
     for (int j = 0; j < m_n_panels; j++)
         outputs.m_T_panel_avg.at(j) = 0.0;
+
+    for (int j = 0; j < m_n_lines; j++)
+    {
+        outputs.m_m_dot_salt_path.at(j) = 0.0;
+        outputs.m_T_salt_hot_rec_path.at(j) = 0.0;
+    }
 
     ms_outputs = outputs;
 	

@@ -74,6 +74,11 @@ static C_csp_reported_outputs::S_output_info S_output_info[] =
     {C_csp_mspt_collector_receiver::E_T_HTF_12, C_csp_reported_outputs::TS_WEIGHTED_AVE},
     {C_csp_mspt_collector_receiver::E_T_HTF_13, C_csp_reported_outputs::TS_WEIGHTED_AVE},
 
+    {C_csp_mspt_collector_receiver::E_M_DOT_HTF_1, C_csp_reported_outputs::TS_WEIGHTED_AVE},
+    {C_csp_mspt_collector_receiver::E_M_DOT_HTF_2, C_csp_reported_outputs::TS_WEIGHTED_AVE},
+    {C_csp_mspt_collector_receiver::E_T_HTF_OUT_REC_1, C_csp_reported_outputs::TS_WEIGHTED_AVE},
+    {C_csp_mspt_collector_receiver::E_T_HTF_OUT_REC_2, C_csp_reported_outputs::TS_WEIGHTED_AVE},
+
 	csp_info_invalid	
 };
 
@@ -236,6 +241,11 @@ void C_csp_mspt_collector_receiver::call(const C_csp_weatherreader::S_outputs &w
     mc_reported_outputs.value(E_T_HTF_12, mc_pt_receiver.ms_outputs.m_T_panel_avg.at(12)); //[C]
     mc_reported_outputs.value(E_T_HTF_13, mc_pt_receiver.ms_outputs.m_T_panel_avg.at(13)); //[C]
 
+    mc_reported_outputs.value(E_M_DOT_HTF_1, mc_pt_receiver.ms_outputs.m_m_dot_salt_path.at(0)); //kg/s
+    mc_reported_outputs.value(E_M_DOT_HTF_2, mc_pt_receiver.ms_outputs.m_m_dot_salt_path.at(1)); //kg/s
+    mc_reported_outputs.value(E_T_HTF_OUT_REC_1, mc_pt_receiver.ms_outputs.m_T_salt_hot_rec_path.at(0)); //kg/s
+    mc_reported_outputs.value(E_T_HTF_OUT_REC_2, mc_pt_receiver.ms_outputs.m_T_salt_hot_rec_path.at(1)); //kg/s
+
 
     // After reporting, force outlet T higher than design inlet T to trick the controller into allowing receiver operation during "standby"
     if (cr_out_solver.m_T_salt_hot < mc_pt_receiver.m_T_htf_cold_des - 273.15)
@@ -321,6 +331,11 @@ void C_csp_mspt_collector_receiver::off(const C_csp_weatherreader::S_outputs &we
     mc_reported_outputs.value(E_T_HTF_11, mc_pt_receiver.ms_outputs.m_T_panel_avg.at(11)); //[C]
     mc_reported_outputs.value(E_T_HTF_12, mc_pt_receiver.ms_outputs.m_T_panel_avg.at(12)); //[C]
     mc_reported_outputs.value(E_T_HTF_13, mc_pt_receiver.ms_outputs.m_T_panel_avg.at(13)); //[C]
+
+    mc_reported_outputs.value(E_M_DOT_HTF_1, mc_pt_receiver.ms_outputs.m_m_dot_salt_path.at(0)); //kg/s
+    mc_reported_outputs.value(E_M_DOT_HTF_2, mc_pt_receiver.ms_outputs.m_m_dot_salt_path.at(1)); //kg/s
+    mc_reported_outputs.value(E_T_HTF_OUT_REC_1, mc_pt_receiver.ms_outputs.m_T_salt_hot_rec_path.at(0)); //kg/s
+    mc_reported_outputs.value(E_T_HTF_OUT_REC_2, mc_pt_receiver.ms_outputs.m_T_salt_hot_rec_path.at(1)); //kg/s
 
 	return;
 }
