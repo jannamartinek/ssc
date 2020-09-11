@@ -1586,6 +1586,11 @@ void C_mspt_receiver::call(const C_csp_weatherreader::S_outputs &weather,
 		outputs.m_Triser = trans_outputs.t_profile.at(0, 0) - 273.15;	//[C] Average riser wall temperature at inlet
 		outputs.m_Tdownc = trans_outputs.t_profile.at((size_t)m_nz_tot-1, 0) - 273.15;  //[C] Average downcomer wall temperature at outlet
 
+        for (int j = 0; j < m_n_lines; j++)
+        {
+            outputs.m_T_salt_hot_rec_path.at(j) = trans_outputs.timeavg_tout_rec_path.at(j) - 273.15;
+        }
+
         if (!rec_is_off)
         {
             std::vector<double> Tmid = get_temperature_per_panel(trans_inputs, trans_outputs);  // [K] Temperatures at panel midpoints at the end of the timestep
@@ -3781,6 +3786,7 @@ void C_mspt_receiver::solve_transient_model(double tstep,
 	toutputs.time_min_tout = 0.0;			// Time (relative to beginning of time step) at which minimum downcomer outlet T occurs (s)
 	toutputs.tube_temp_inlet = 0.0;
 	toutputs.tube_temp_outlet = 0.0;
+    toutputs.timeavg_tout_rec_path.resize_fill(m_n_lines, 0.0);
 
 
 	double max_Trise;
@@ -3943,6 +3949,7 @@ void C_mspt_receiver::solve_transient_model(double tstep,
             for (size_t j = 0; j<m_n_lines; j++)
             {
                 tout_rec += toutputs.timeavg_temp.at((size_t)m_n_elem - 2, j) / (double) m_n_lines;
+                toutputs.timeavg_tout_rec_path.at(j) += toutputs.timeavg_temp.at((size_t)m_n_elem - 2, j);
             }
             toutputs.timeavg_tout_rec = toutputs.timeavg_tout_rec + tout_rec * (transmodel_step / tstep);
 			

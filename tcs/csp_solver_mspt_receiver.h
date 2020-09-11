@@ -254,6 +254,7 @@ private:
 		util::matrix_t<double> t_profile;		// Axial temperature profile at the end of the time step[K]
 		util::matrix_t<double> t_profile_wall;	// Axial wall temperature profile at the end of the time step[K]
 		util::matrix_t<double> timeavg_temp;	// Time-average outlet temperature of each flow element [K]
+        util::matrix_t<double> timeavg_tout_rec_path; // Time-average receiver outlet T per path [k]
 
 		transient_outputs()
 		{
