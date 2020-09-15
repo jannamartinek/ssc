@@ -407,6 +407,8 @@ public:
     bool m_is_user_Tin;
     bool m_is_user_Tout;
     std::vector<double> m_user_mflow;
+    std::vector<double> m_user_mflow_path1;
+    std::vector<double> m_user_mflow_path2;
     std::vector<double> m_user_Tin;
     std::vector<double> m_user_Tout;
 

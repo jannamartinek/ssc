@@ -752,13 +752,28 @@ void C_mspt_receiver::call(const C_csp_weatherreader::S_outputs &weather,
 	}
 
     // Get mass flow and inlet temperature at this time step
-    double mflow = 0.0;
+    std::vector<double> mflow(m_n_lines, 0.0);
     if (m_is_user_mflow)
     {
-        size_t nsteps = m_user_mflow.size();
+        size_t nsteps = 0;
+        if (!m_control_per_path)
+            nsteps = m_user_mflow.size();
+        else
+            nsteps = m_user_mflow_path1.size();
         int stepsize = 8760 * 3600 / nsteps;   // File time step size [s]
         int step = (int)(time / stepsize)-1;
-        mflow = m_user_mflow.at(step);
+
+        if (!m_control_per_path)
+        {
+            for (size_t j = 0; j < m_n_lines; j++)
+                mflow.at(j) = m_user_mflow.at(step) / m_n_lines;
+        }
+        else
+        {
+            mflow.at(0) = m_user_mflow_path1.at(step);
+            mflow.at(1) = m_user_mflow_path2.at(step);
+        }
+
     }
     if (m_is_user_Tin)
     {
@@ -793,10 +808,7 @@ void C_mspt_receiver::call(const C_csp_weatherreader::S_outputs &weather,
 		soln.q_dot_inc.resize_fill(m_n_panels, 0.0);
     else if (m_is_user_mflow)
     {
-        for (size_t j = 0; j < m_n_lines; j++)
-        {
-            soln.m_dot_salt_path.at(j) = mflow / m_n_lines;
-        }
+        soln.m_dot_salt_path = mflow;
         soln.q_dot_inc = calculate_flux_profiles(I_bn, field_eff, soln.od_control, flux_map_input);  // Absorbed flux profiles at actual DNI and clear-sky defocus
         calculate_steady_state_soln(soln, 0.00025);  // Solve energy balances at user mass flow rate and actual DNI conditions
     }
