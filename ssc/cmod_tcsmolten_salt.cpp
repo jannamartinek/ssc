@@ -120,6 +120,8 @@ static var_info _cm_vtab_tcsmolten_salt[] = {
     { SSC_INPUT,     SSC_NUMBER, "opt_flux_penalty",                   "Optimization flux overage penalty",                                                                                                       "",             "",                                  "Heliostat Field",                          "*",                                                                "",              ""},
     { SSC_INPUT,     SSC_NUMBER, "opt_algorithm",                      "Optimization algorithm",                                                                                                                  "",             "",                                  "Heliostat Field",                          "?=0",                                                              "",              ""},
 
+    { SSC_INPUT,     SSC_NUMBER, "n_flux_y",                           "Height resolution for flux profile calculation",                                                                                          "",             "",                                  "Heliostat Field",                          "?=1",                                                              "",              ""},
+
     //other costs needed for optimization update
     { SSC_INPUT,     SSC_NUMBER, "csp.pt.cost.epc.per_acre",           "EPC cost per acre",                                                                                                                       "$/acre",       "",                                  "System Costs",                             "*",                                                                "",              ""},
     { SSC_INPUT,     SSC_NUMBER, "csp.pt.cost.epc.percent",            "EPC cost percent of direct",                                                                                                              "%",            "",                                  "System Costs",                             "*",                                                                "",              ""},
@@ -809,7 +811,9 @@ public:
         assign("helio_optical_error", (ssc_number_t)(as_number("helio_optical_error_mrad")*1.E-3));
 
         // Set 'n_flux_x' and 'n_flux_y' here, for now
-        assign("n_flux_y", 1);
+        //assign("n_flux_y", 1);
+        if (as_integer("n_flux_y") > 1)
+            throw exec_error("tcsmolten_salt", "n_flux_y > 1");
         int n_rec_panels = as_integer("N_panels");
         assign("n_flux_x", (ssc_number_t)max(12, n_rec_panels));
 
@@ -931,6 +935,24 @@ public:
                         cur_row++;
                     }
                 }
+
+                // Sum flux maps over vertical positions
+                util::matrix_t<double> mt_flux_maps_new(1 * flux_data->nlayers(), nflux_x);
+                mt_flux_maps_new.fill(0.0);
+                cur_row = 0;
+                for (size_t i = 0; i < flux_data->nlayers(); i++)
+                {
+                    for (int j = 0; j < nflux_y; j++)
+                    {
+                        for (int k = 0; k < nflux_x; k++)
+                        {
+                            mt_flux_maps_new(i, k) += mt_flux_maps(cur_row, k);
+                        }
+                        cur_row++;
+                    }
+                }
+                mt_flux_maps = mt_flux_maps_new;
+                assign("n_flux_y", 1);  // Revert back to 1-element height specification
             }
             else
                 throw exec_error("solarpilot", "failed to calculate a correct flux map table");
@@ -993,6 +1015,24 @@ public:
                         cur_row++;
                     }
                 }
+
+                // Sum flux maps over vertical positions
+                util::matrix_t<double> mt_flux_maps_new(1 * flux_data->nlayers(), nflux_x);
+                mt_flux_maps_new.fill(0.0);
+                cur_row = 0;
+                for (size_t i = 0; i < flux_data->nlayers(); i++)
+                {
+                    for (int j = 0; j < nflux_y; j++)
+                    {
+                        for (int k = 0; k < nflux_x; k++)
+                        {
+                            mt_flux_maps_new(i, k) += mt_flux_maps(cur_row, k);
+                        }
+                        cur_row++;
+                    }
+                }
+                mt_flux_maps = mt_flux_maps_new;
+                assign("n_flux_y", 1);  // Revert back to 1-element height specification
             }
             else
                 throw exec_error("solarpilot", "failed to calculate a correct flux map table");
